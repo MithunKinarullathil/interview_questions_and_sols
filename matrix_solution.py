@@ -22,6 +22,12 @@ class MatrixSolution:
         self.input_orig = numpy.random.choice(
             [True, False], size=(self.matrix_size, self.matrix_size), p=[0.2, 0.8]
         )
+        self.input_orig = [
+            [False, False, True, False],
+            [False, False, True, False],
+            [False, True, False, False],
+            [False, False, False, False],
+        ]
 
         # Copy input matrix, as we will be modifying it
         self.input = self.input_orig.copy()
