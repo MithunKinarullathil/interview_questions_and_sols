@@ -92,7 +92,7 @@ class MatrixSolution:
         if self.result:
             print("##############################")
             print("Solution")
-            pretty_result = numpy.full((args.matrix_size, args.matrix_size), "0",dtype="U1")
+            pretty_result = numpy.full((args.matrix_size, args.matrix_size), "0", dtype="U1")
             for item in self.result:
                 pretty_result[item[0]][item[1]] = ">"
             print(pretty_result)
