@@ -16,9 +16,10 @@ class MatrixSolution:
         """
         # Initialize variables
         self.result = []
+        self.matrix_size = matrix_size
 
         # Input matrix (8x8) with random True/False values
-        self.input_orig = numpy.random.choice([True, False], size=(args.matrix_size, args.matrix_size), p=[0.2, 0.8])
+        self.input_orig = numpy.random.choice([True, False], size=(self.matrix_size, self.matrix_size), p=[0.2, 0.8])
 
         # Copy input matrix, as we will be modifying it
         self.input = self.input_orig.copy()
