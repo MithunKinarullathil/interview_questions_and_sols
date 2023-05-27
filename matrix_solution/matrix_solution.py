@@ -23,7 +23,11 @@ class MatrixSolution:
     def __init__(self, matrix_size: int, test_mode: bool) -> None:
         """Question: Given a matrix of size N*N, find the shortest path from top left to bottom right.
         Each cell of the matrix has a boolean value, True or False. Where True means that the cell is blocked.
+        Only right and down jumps are allowed.
         """
+        # Log the class description
+        print(self.__init__.__doc__)
+
         # Initialize variables
         self.result = []
 
