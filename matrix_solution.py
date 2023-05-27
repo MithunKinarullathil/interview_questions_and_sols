@@ -158,7 +158,9 @@ class MatrixSolution:
                     # Come back one step
                     # If needs to go back from the first element, then there are no solutions
                     if (i, j) == (0, 0):
-                        print('All paths to the destination are blocked.')
+                        print(
+                            'All paths to the destination are either blocked or cannot be achieved by only moving down and right.'
+                        )
                         self.result = None
                         return None
                     self.result.pop()
