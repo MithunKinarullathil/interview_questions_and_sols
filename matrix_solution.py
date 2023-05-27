@@ -1,36 +1,56 @@
 #!/usr/bin/python3
 import numpy
 import argparse
+import copy
+import yaml
+
+# Set numpy print options
+numpy.set_printoptions(threshold=numpy.inf, linewidth=numpy.inf)
 
 # Process arguments
 argparse.ArgumentParser()
 parser = argparse.ArgumentParser(description='Process matrix size.')
-parser.add_argument('matrix_size', type=int, help='Size of the matrix', default=20)
+parser.add_argument(
+    '--matrix_size', type=int, help='Size of the matrix', default=5, required=False
+)
+parser.add_argument(
+    '--test_mode', help='Test mode', action='store_true', default=False, required=False
+)
 args = parser.parse_args()
 
 
 class MatrixSolution:
-    def __init__(self, matrix_size: int) -> None:
+    def __init__(self, matrix_size: int, test_mode: bool) -> None:
         """Question: Given a matrix of size N*N, find the shortest path from top left to bottom right.
         Each cell of the matrix has a boolean value, True or False. Where True means that the cell is blocked.
         """
         # Initialize variables
         self.result = []
-        self.matrix_size = matrix_size
 
-        # Input matrix (8x8) with random True/False values
-        self.input_orig = numpy.random.choice(
-            [True, False], size=(self.matrix_size, self.matrix_size), p=[0.2, 0.8]
-        )
-        self.input_orig = [
-            [False, False, True, False],
-            [False, False, True, False],
-            [False, True, False, False],
-            [False, False, False, False],
-        ]
+        if not test_mode:
+            # Input matrix (8x8) with random True/False values
+            self.np_matrix = numpy.random.choice(
+                [True, False], size=(matrix_size, matrix_size), p=[0.2, 0.8]
+            )
+            # Convert numpy matrix to list of lists
+            self.input_orig = self.np_matrix.tolist()
+        else:
+            # Log
+            print('Test mode is on. Reading input from input.yaml file.')
+            # Read input from input.yaml file
+            with open('input.yaml') as file:
+                input_dict = yaml.load(file, Loader=yaml.FullLoader)
+            self.input_orig = input_dict['input']
+            # Convert 0/1 to True/False
+            self.input_orig = list(map(lambda x: list(map(bool, x)), self.input_orig))
+
+        # The first element and the last element cannot be blocked
+        self.matrix_size = len(self.input_orig)
+        self.input_orig[0][0] = False
+        self.input_orig[self.matrix_size - 1][self.matrix_size - 1] = False
 
         # Copy input matrix, as we will be modifying it
-        self.input = self.input_orig.copy()
+        self.input = copy.deepcopy(self.input_orig)
 
     def is_blocked(self, x, y) -> bool:
         """Check if the cell is blocked or not."""
@@ -53,13 +73,13 @@ class MatrixSolution:
     def find_best_next_cell(self, i, j) -> str:
         """Find the best next cell to jump to."""
         # Simulate jump down
-        if i + 1 <= args.matrix_size - 1:
+        if i + 1 <= self.matrix_size - 1:
             down = self.input[i + 1][j]
         else:
             down = None
 
         # Simulate jump right
-        if j + 1 <= args.matrix_size - 1:
+        if j + 1 <= self.matrix_size - 1:
             right = self.input[i][j + 1]
         else:
             right = None
@@ -69,7 +89,7 @@ class MatrixSolution:
         if last_jump is None or last_jump == 'down':
             if right is None or right is True:
                 if down is None or down is True:
-                    if (i, j) == (args.matrix_size - 1, args.matrix_size - 1):
+                    if (i, j) == (self.matrix_size - 1, self.matrix_size - 1):
                         return 'last_cell'
                     else:
                         return 'go_back'
@@ -80,7 +100,7 @@ class MatrixSolution:
         elif last_jump == 'right':
             if down is None or down is True:
                 if right is None or right is True:
-                    if (i, j) == (args.matrix_size - 1, args.matrix_size - 1):
+                    if (i, j) == (self.matrix_size - 1, self.matrix_size - 1):
                         return 'last_cell'
                     else:
                         return 'go_back'
@@ -101,7 +121,7 @@ class MatrixSolution:
             print('##############################')
             print('Solution')
             pretty_result = numpy.full(
-                (args.matrix_size, args.matrix_size), '0', dtype='U1'
+                (self.matrix_size, self.matrix_size), '0', dtype='U1'
             )
             for item in self.result:
                 pretty_result[item[0]][item[1]] = '>'
@@ -110,7 +130,7 @@ class MatrixSolution:
     def recursion(self, i, j) -> None:
         """Recursion function."""
         # Stop recursion
-        if i > args.matrix_size - 1 or j > args.matrix_size - 1:
+        if i > self.matrix_size - 1 or j > self.matrix_size - 1:
             return None
         else:
             # Check if the current place is blocked or not
@@ -157,6 +177,6 @@ class MatrixSolution:
 
 
 # Run the recursion
-matrix_solution = MatrixSolution(args.matrix_size)
+matrix_solution = MatrixSolution(args.matrix_size, args.test_mode)
 matrix_solution.recursion(0, 0)
 matrix_solution.print_result()
