@@ -44,13 +44,9 @@ class MatrixSolution:
             # Convert 0/1 to True/False
             self.input_orig = list(map(lambda x: list(map(bool, x)), self.input_orig))
 
-        # The first element and the last element cannot be blocked
-        self.matrix_size = len(self.input_orig)
-        self.input_orig[0][0] = False
-        self.input_orig[self.matrix_size - 1][self.matrix_size - 1] = False
-
         # Copy input matrix, as we will be modifying it
         self.input = copy.deepcopy(self.input_orig)
+        self.matrix_size = len(self.input)
 
     def is_blocked(self, x, y) -> bool:
         """Check if the cell is blocked or not."""
