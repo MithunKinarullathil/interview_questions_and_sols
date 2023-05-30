@@ -3,6 +3,7 @@ import numpy
 import argparse
 import copy
 import yaml
+import time
 
 # Set numpy print options
 numpy.set_printoptions(threshold=numpy.inf, linewidth=numpy.inf)
@@ -35,9 +36,14 @@ args = parser.parse_args()
 
 class MatrixSolution:
     # Class attribute
+    # Character to visualize the movement of the robot
     mov_viz_char = '>'
+    # Slow down by this much when using visualize mode
+    period = 0.8
 
-    def __init__(self, matrix_size: int, test_mode: bool, free_move: bool) -> None:
+    def __init__(
+        self, matrix_size: int, test_mode: bool, free_move: bool, visualize: bool
+    ) -> None:
         """Question: Given a matrix of size N*N, find the shortest path from top left to bottom right.
         Each cell of the matrix has a boolean value, True or False. Where True means that the cell is blocked.
         Only right and down jumps are allowed.
@@ -49,7 +55,7 @@ class MatrixSolution:
         self.result = []
         self.free_move = free_move
         self.test_mode = test_mode
-        # Character to visualize the movement of the robot
+        self.visualize = visualize
 
         if not test_mode:
             # Input matrix (8x8) with random True/False values
@@ -75,6 +81,13 @@ class MatrixSolution:
         # Generate a visualization matrix where we overlap input and result while in test_mode
         if test_mode:
             self.io_overlap = copy.deepcopy(input_dict['input'])
+
+        # Print input matrix if visualization is not enabled
+        if not visualize:
+            print('##############################')
+            print('Input Matrix')
+            input_mod = list(map(lambda x: list(map(int, x)), self.input_orig))
+            print(numpy.array(input_mod))
 
     def is_blocked(self, x, y) -> bool:
         """Check if the cell is blocked or not."""
@@ -229,13 +242,8 @@ class MatrixSolution:
 
     def print_result(self) -> None:
         """Print the self.result."""
-        # Print input matrix
-        print('##############################')
-        print('Input Matrix')
-        input_mod = list(map(lambda x: list(map(int, x)), self.input_orig))
-        print(numpy.array(input_mod))
         # Print solution
-        if self.result:
+        if self.result and not self.visualize:
             print('##############################')
             print('Solution')
             pretty_result = numpy.full(
@@ -247,6 +255,9 @@ class MatrixSolution:
 
     def recursion(self, i, j) -> None:
         """Recursion function."""
+        # If visualizing, slow down recursion
+        if self.visualize:
+            time.sleep(MatrixSolution.period)
         # Stop recursion
         if i > self.matrix_size - 1 or j > self.matrix_size - 1:
             return None
@@ -319,6 +330,8 @@ class MatrixSolution:
 
 
 # Run the recursion
-matrix_solution = MatrixSolution(args.matrix_size, args.test_mode, args.free_move)
+matrix_solution = MatrixSolution(
+    args.matrix_size, args.test_mode, args.free_move, args.visualize
+)
 matrix_solution.recursion(0, 0)
 matrix_solution.print_result()
