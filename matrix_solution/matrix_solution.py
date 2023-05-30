@@ -81,9 +81,15 @@ class MatrixSolution:
             i2, j2 = self.result[-1]
             i1, j1 = self.result[-2]
             if i2 == i1:
-                return 'right'
+                if j2 > j1:
+                    return 'right'
+                else:
+                    return 'left'
             elif j2 == j1:
-                return 'down'
+                if i2 > i1:
+                    return 'down'
+                else:
+                    return 'up'
             else:
                 print(f'Something is wrong in the entries of self.result.{self.result}')
 
@@ -218,6 +224,7 @@ class MatrixSolution:
                 # Visualize result for feedback if in test_mode
                 if self.test_mode:
                     self.io_overlap[i][j] = MatrixSolution.mov_viz_char
+                    print(f'\r{numpy.matrix(self.io_overlap)}', end='', flush=True)
 
                 # Check best path
                 best_path = self.find_best_next_cell(i, j)
@@ -244,11 +251,15 @@ class MatrixSolution:
                         self.result = None
                         return None
                     self.result.pop()
+                    # Reset io_overlap
+                    self.io_overlap[i][j] = '0'
                     # Blacklist that cell
                     self.input[i][j] = True
                     # Restart from last known good location
                     i, j = self.result[-1]
                     self.result.pop()
+                    # Reset io_overlap
+                    self.io_overlap[i][j] = '0'
                     self.recursion(i, j)
                 elif best_path == 'last_cell':
                     return None
