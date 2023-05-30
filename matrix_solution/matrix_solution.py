@@ -27,6 +27,9 @@ args = parser.parse_args()
 
 
 class MatrixSolution:
+    # Class attribute
+    mov_viz_char = '>'
+
     def __init__(self, matrix_size: int, test_mode: bool, free_move: bool) -> None:
         """Question: Given a matrix of size N*N, find the shortest path from top left to bottom right.
         Each cell of the matrix has a boolean value, True or False. Where True means that the cell is blocked.
@@ -38,6 +41,8 @@ class MatrixSolution:
         # Initialize variables
         self.result = []
         self.free_move = free_move
+        self.test_mode = test_mode
+        # Character to visualize the movement of the robot
 
         if not test_mode:
             # Input matrix (8x8) with random True/False values
@@ -59,6 +64,10 @@ class MatrixSolution:
         # Copy input matrix, as we will be modifying it
         self.input = copy.deepcopy(self.input_orig)
         self.matrix_size = len(self.input)
+
+        # Generate a visualization matrix where we overlap input and result while in test_mode
+        if test_mode:
+            self.io_overlap = copy.deepcopy(input_dict['input'])
 
     def is_blocked(self, x, y) -> bool:
         """Check if the cell is blocked or not."""
@@ -163,6 +172,8 @@ class MatrixSolution:
             status = self.simulate_right_down(last_jump, right, down, i, j)
             if status == 'go_back':
                 return self.simulate_left_up(last_jump, left, up, i, j)
+            else:
+                return status
         else:
             return self.simulate_right_down(last_jump, right, down, i, j)
 
@@ -181,7 +192,7 @@ class MatrixSolution:
                 (self.matrix_size, self.matrix_size), '0', dtype='U1'
             )
             for item in self.result:
-                pretty_result[item[0]][item[1]] = '>'
+                pretty_result[item[0]][item[1]] = MatrixSolution.mov_viz_char
             print(pretty_result)
 
     def recursion(self, i, j) -> None:
@@ -204,6 +215,9 @@ class MatrixSolution:
             else:
                 # The cell is clear, it's a good cell
                 self.result.append((i, j))
+                # Visualize result for feedback if in test_mode
+                if self.test_mode:
+                    self.io_overlap[i][j] = MatrixSolution.mov_viz_char
 
                 # Check best path
                 best_path = self.find_best_next_cell(i, j)
