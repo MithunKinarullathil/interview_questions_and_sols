@@ -257,6 +257,14 @@ class MatrixSolution:
                 pretty_result[item[0]][item[1]] = MatrixSolution.mov_viz_char
             print(pretty_result)
 
+    def str_repr(self, matrix: list) -> str:
+        """Convert matrix into string representation."""
+        str_repr = ''
+        for row in matrix:
+            str_row = f"[{', '.join(map(lambda x: str(x), row))}]\n"
+            str_repr += str_row
+        return str_repr
+
     def recursion(self, i, j) -> None:
         """Recursion function."""
         # If visualizing, slow down recursion
@@ -283,7 +291,7 @@ class MatrixSolution:
                 # Visualize result for feedback if in file_input
                 if self.visualize:
                     self.io_overlap[i][j] = MatrixSolution.mov_viz_char
-                    print(f'\r{numpy.matrix(self.io_overlap)}', end='', flush=True)
+                    print(self.str_repr(self.io_overlap), end='\r', flush=False)
 
                 # Check best path
                 best_path = self.find_best_next_cell(i, j)
