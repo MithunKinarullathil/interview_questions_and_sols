@@ -22,7 +22,7 @@ parser.add_argument(
     required=False,
 )
 parser.add_argument(
-    '--free_move',
+    '--free_nav',
     help='Free movement of the robot in all direction',
     action='store_true',
     default=False,
@@ -46,7 +46,7 @@ class MatrixSolution:
     period = 0.8
 
     def __init__(
-        self, matrix_size: int, file_input: bool, free_move: bool, visualize: bool
+        self, matrix_size: int, file_input: bool, free_nav: bool, visualize: bool
     ) -> None:
         """Question: Given a matrix of size N*N, find the shortest path from top left to bottom right.
         Each cell of the matrix has a boolean value, True or False. Where True means that the cell is blocked.
@@ -57,7 +57,7 @@ class MatrixSolution:
 
         # Initialize variables
         self.result = []
-        self.free_move = free_move
+        self.free_nav = free_nav
         self.file_input = file_input
         self.visualize = visualize
 
@@ -227,7 +227,7 @@ class MatrixSolution:
         if j + 1 <= self.matrix_size - 1:
             right = self.input[i][j + 1]
 
-        if self.free_move:
+        if self.free_nav:
             # Simulate jump up
             if i - 1 >= 0:
                 up = self.input[i - 1][j]
@@ -239,7 +239,7 @@ class MatrixSolution:
         last_jump = self.get_last_jump()
 
         # Check if free movement is allowed
-        if self.free_move:
+        if self.free_nav:
             return self.simulate_all_direcs(last_jump, right, down, up, left, i, j)
         else:
             return self.simulate_right_down(last_jump, right, down, i, j)
@@ -335,7 +335,7 @@ class MatrixSolution:
 
 # Run the recursion
 matrix_solution = MatrixSolution(
-    args.matrix_size, args.file_input, args.free_move, args.visualize
+    args.matrix_size, args.file_input, args.free_nav, args.visualize
 )
 matrix_solution.recursion(0, 0)
 matrix_solution.print_result()
