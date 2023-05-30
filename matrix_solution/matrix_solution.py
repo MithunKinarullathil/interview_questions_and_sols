@@ -16,11 +16,18 @@ parser.add_argument(
 parser.add_argument(
     '--test_mode', help='Test mode', action='store_true', default=False, required=False
 )
+parser.add_argument(
+    '--free_move',
+    help='Free movement of the robot in all direction',
+    action='store_true',
+    default=False,
+    required=False,
+)
 args = parser.parse_args()
 
 
 class MatrixSolution:
-    def __init__(self, matrix_size: int, test_mode: bool) -> None:
+    def __init__(self, matrix_size: int, test_mode: bool, free_move: bool) -> None:
         """Question: Given a matrix of size N*N, find the shortest path from top left to bottom right.
         Each cell of the matrix has a boolean value, True or False. Where True means that the cell is blocked.
         Only right and down jumps are allowed.
@@ -30,6 +37,7 @@ class MatrixSolution:
 
         # Initialize variables
         self.result = []
+        self.free_move = free_move
 
         if not test_mode:
             # Input matrix (8x8) with random True/False values
@@ -70,22 +78,11 @@ class MatrixSolution:
             else:
                 print(f'Something is wrong in the entries of self.result.{self.result}')
 
-    def find_best_next_cell(self, i, j) -> str:
-        """Find the best next cell to jump to."""
-        # Simulate jump down
-        if i + 1 <= self.matrix_size - 1:
-            down = self.input[i + 1][j]
-        else:
-            down = None
-
-        # Simulate jump right
-        if j + 1 <= self.matrix_size - 1:
-            right = self.input[i][j + 1]
-        else:
-            right = None
-
-        # Get last jump direction
-        last_jump = self.get_last_jump()
+    def simulate_right_down(
+        self, last_jump: str, right: bool, down: bool, i: int, j: int
+    ) -> str:
+        # If last jump was down (first jump), prioritize right movement,
+        # else if jump was right, prioritize down movement
         if last_jump is None or last_jump == 'down':
             if right is None or right is True:
                 if down is None or down is True:
@@ -108,6 +105,66 @@ class MatrixSolution:
                     return 'right'
             else:
                 return 'down'
+
+    def simulate_left_up(
+        self, last_jump: str, left: bool, up: bool, i: int, j: int
+    ) -> str:
+        # Since we cannot prioritize like the right_down simulation given the last jump direction,\
+        # We could say that the best next move is to move in a direction other than the last jump,
+        # Eg: If last_jump is right, then going left is basically the "go_back" move, so to have more
+        # Possibility of reaching the goal, we can do go "up" and vice versa.
+        if last_jump is None:
+            return 'go_back'
+        elif last_jump == 'right':
+            # Prioritize up
+            if up is None or up is True:
+                if (i, j) == (self.matrix_size - 1, self.matrix_size - 1):
+                    return 'last_cell'
+                else:
+                    return 'go_back'
+            else:
+                return 'up'
+        elif last_jump == 'down':
+            # Prioritize left
+            if left is None or left is True:
+                if (i, j) == (self.matrix_size - 1, self.matrix_size - 1):
+                    return 'last_cell'
+                else:
+                    return 'go_back'
+            else:
+                return 'left'
+
+    def find_best_next_cell(self, i, j) -> str:
+        """Find the best next cell to jump to."""
+        # Initialize direction variables
+        left, up, right, down = None, None, None, None
+        # Simulate jump down
+        if i + 1 <= self.matrix_size - 1:
+            down = self.input[i + 1][j]
+        # Simulate jump right
+        if j + 1 <= self.matrix_size - 1:
+            right = self.input[i][j + 1]
+
+        if self.free_move:
+            # Simulate jump up
+            if i - 1 >= 0:
+                up = self.input[i - 1][j]
+            # Simulate jump left
+            if j - 1 >= 0:
+                left = self.input[i][j - 1]
+
+        # Get last jump direction
+        last_jump = self.get_last_jump()
+
+        # Check if free movement is allowed
+        if self.free_move:
+            # First priority is still right and down
+            # But if status is "go_back" then we try to go up and left
+            status = self.simulate_right_down(last_jump, right, down, i, j)
+            if status == 'go_back':
+                return self.simulate_left_up(last_jump, left, up, i, j)
+        else:
+            return self.simulate_right_down(last_jump, right, down, i, j)
 
     def print_result(self) -> None:
         """Print the self.result."""
@@ -157,8 +214,13 @@ class MatrixSolution:
                 elif best_path == 'down':
                     # Jump down
                     self.recursion(i + 1, j)
+                elif best_path == 'left':
+                    # Jump left
+                    self.recursion(i, j - 1)
+                elif best_path == 'up':
+                    # Jump up
+                    self.recursion(i - 1, j)
                 elif best_path == 'go_back':
-
                     # Come back one step
                     # If needs to go back from the first element, then there are no solutions
                     if (i, j) == (0, 0):
@@ -179,6 +241,6 @@ class MatrixSolution:
 
 
 # Run the recursion
-matrix_solution = MatrixSolution(args.matrix_size, args.test_mode)
+matrix_solution = MatrixSolution(args.matrix_size, args.test_mode, args.free_move)
 matrix_solution.recursion(0, 0)
 matrix_solution.print_result()
