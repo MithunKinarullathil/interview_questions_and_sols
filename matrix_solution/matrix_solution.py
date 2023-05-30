@@ -15,7 +15,11 @@ parser.add_argument(
     '--matrix_size', type=int, help='Size of the matrix', default=5, required=False
 )
 parser.add_argument(
-    '--test_mode', help='Test mode', action='store_true', default=False, required=False
+    '--file_input',
+    help='Test mode using input from a file.',
+    action='store_true',
+    default=False,
+    required=False,
 )
 parser.add_argument(
     '--free_move',
@@ -42,7 +46,7 @@ class MatrixSolution:
     period = 0.8
 
     def __init__(
-        self, matrix_size: int, test_mode: bool, free_move: bool, visualize: bool
+        self, matrix_size: int, file_input: bool, free_move: bool, visualize: bool
     ) -> None:
         """Question: Given a matrix of size N*N, find the shortest path from top left to bottom right.
         Each cell of the matrix has a boolean value, True or False. Where True means that the cell is blocked.
@@ -54,10 +58,10 @@ class MatrixSolution:
         # Initialize variables
         self.result = []
         self.free_move = free_move
-        self.test_mode = test_mode
+        self.file_input = file_input
         self.visualize = visualize
 
-        if not test_mode:
+        if not file_input:
             # Input matrix (8x8) with random True/False values
             self.np_matrix = numpy.random.choice(
                 [True, False], size=(matrix_size, matrix_size), p=[0.2, 0.8]
@@ -78,8 +82,8 @@ class MatrixSolution:
         self.input = copy.deepcopy(self.input_orig)
         self.matrix_size = len(self.input)
 
-        # Generate a visualization matrix where we overlap input and result while in test_mode
-        if test_mode:
+        # Generate a visualization matrix where we overlap input and result while in file_input
+        if file_input:
             self.io_overlap = copy.deepcopy(input_dict['input'])
 
         # Print input matrix if visualization is not enabled
@@ -276,7 +280,7 @@ class MatrixSolution:
             else:
                 # The cell is clear, it's a good cell
                 self.result.append((i, j))
-                # Visualize result for feedback if in test_mode
+                # Visualize result for feedback if in file_input
                 if self.visualize:
                     self.io_overlap[i][j] = MatrixSolution.mov_viz_char
                     print(f'\r{numpy.matrix(self.io_overlap)}', end='', flush=True)
@@ -331,7 +335,7 @@ class MatrixSolution:
 
 # Run the recursion
 matrix_solution = MatrixSolution(
-    args.matrix_size, args.test_mode, args.free_move, args.visualize
+    args.matrix_size, args.file_input, args.free_move, args.visualize
 )
 matrix_solution.recursion(0, 0)
 matrix_solution.print_result()
