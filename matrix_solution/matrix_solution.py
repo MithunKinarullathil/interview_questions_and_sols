@@ -23,6 +23,13 @@ parser.add_argument(
     default=False,
     required=False,
 )
+parser.add_argument(
+    '--visualize',
+    help='Visualize the jumps in realtime. Slows the code by 0.3s per iteration.',
+    action='store_true',
+    default=False,
+    required=False,
+)
 args = parser.parse_args()
 
 
@@ -99,8 +106,8 @@ class MatrixSolution:
         # If last jump was down (first jump), prioritize right movement,
         # else if jump was right, prioritize down movement
         if last_jump is None or last_jump == 'down':
-            if right is None or right is True:
-                if down is None or down is True:
+            if right is True:
+                if down is True:
                     if (i, j) == (self.matrix_size - 1, self.matrix_size - 1):
                         return 'last_cell'
                     else:
@@ -110,8 +117,8 @@ class MatrixSolution:
             else:
                 return 'right'
         elif last_jump == 'right':
-            if down is None or down is True:
-                if right is None or right is True:
+            if down is True:
+                if right is True:
                     if (i, j) == (self.matrix_size - 1, self.matrix_size - 1):
                         return 'last_cell'
                     else:
@@ -121,38 +128,81 @@ class MatrixSolution:
             else:
                 return 'down'
 
-    def simulate_left_up(
-        self, last_jump: str, left: bool, up: bool, i: int, j: int
+    def cell_in_history(self, i: int, j: int, direction: str) -> bool:
+        """Check if the given cell is already in result/ already has been traversed."""
+        jump_dict = {
+            'right': (i, j + 1),
+            'down': (i + 1, j),
+            'left': (i, j - 1),
+            'up': (i - 1, j),
+        }
+        return jump_dict[direction] in self.result
+
+    def simulate_all_direcs(
+        self,
+        last_jump: bool,
+        right: bool,
+        down: bool,
+        up: bool,
+        left: bool,
+        i: int,
+        j: int,
     ) -> str:
-        # Since we cannot prioritize like the right_down simulation given the last jump direction,\
-        # We could say that the best next move is to move in a direction other than the last jump,
-        # Eg: If last_jump is right, then going left is basically the "go_back" move, so to have more
-        # Possibility of reaching the goal, we can do go "up" and vice versa.
+        """Simulate the movement in all directions and return the best one."""
+        # Already reached goal
+        if (i, j) == (self.matrix_size - 1, self.matrix_size - 1):
+            return 'last_cell'
+
+        # First ever jump, should be right or down
         if last_jump is None:
-            return 'go_back'
-        elif last_jump == 'right':
-            # Prioritize up
-            if up is None or up is True:
-                if (i, j) == (self.matrix_size - 1, self.matrix_size - 1):
-                    return 'last_cell'
-                else:
-                    return 'go_back'
+            if right is False:
+                return 'right'
+            elif down is False:
+                return 'down'
             else:
-                return 'up'
+                # No possible moves
+                return None
         elif last_jump == 'down':
-            # Prioritize left
-            if left is None or left is True:
-                if (i, j) == (self.matrix_size - 1, self.matrix_size - 1):
-                    return 'last_cell'
-                else:
-                    return 'go_back'
-            else:
+            if right is False and not self.cell_in_history(i, j, 'right'):
+                return 'right'
+            elif down is False and not self.cell_in_history(i, j, 'down'):
+                return 'down'
+            elif left is False and not self.cell_in_history(i, j, 'left'):
                 return 'left'
+            else:
+                return 'go_back'
+        elif last_jump == 'right':
+            if down is False and not self.cell_in_history(i, j, 'down'):
+                return 'down'
+            elif right is False and not self.cell_in_history(i, j, 'right'):
+                return 'right'
+            elif up is False and not self.cell_in_history(i, j, 'up'):
+                return 'up'
+            else:
+                return 'go_back'
+        elif last_jump == 'left':
+            if down is False and not self.cell_in_history(i, j, 'down'):
+                return 'down'
+            elif up is False and not self.cell_in_history(i, j, 'up'):
+                return 'up'
+            elif left is False and not self.cell_in_history(i, j, 'left'):
+                return 'left'
+            else:
+                return 'go_back'
+        elif last_jump == 'up':
+            if right is False and not self.cell_in_history(i, j, 'right'):
+                return 'right'
+            elif left is False and not self.cell_in_history(i, j, 'left'):
+                return 'left'
+            elif up is False and not self.cell_in_history(i, j, 'up'):
+                return 'up'
+            else:
+                return 'go_back'
 
     def find_best_next_cell(self, i, j) -> str:
         """Find the best next cell to jump to."""
         # Initialize direction variables
-        left, up, right, down = None, None, None, None
+        left, up, right, down = True, True, True, True
         # Simulate jump down
         if i + 1 <= self.matrix_size - 1:
             down = self.input[i + 1][j]
@@ -173,13 +223,7 @@ class MatrixSolution:
 
         # Check if free movement is allowed
         if self.free_move:
-            # First priority is still right and down
-            # But if status is "go_back" then we try to go up and left
-            status = self.simulate_right_down(last_jump, right, down, i, j)
-            if status == 'go_back':
-                return self.simulate_left_up(last_jump, left, up, i, j)
-            else:
-                return status
+            return self.simulate_all_direcs(last_jump, right, down, up, left, i, j)
         else:
             return self.simulate_right_down(last_jump, right, down, i, j)
 
@@ -222,7 +266,7 @@ class MatrixSolution:
                 # The cell is clear, it's a good cell
                 self.result.append((i, j))
                 # Visualize result for feedback if in test_mode
-                if self.test_mode:
+                if self.visualize:
                     self.io_overlap[i][j] = MatrixSolution.mov_viz_char
                     print(f'\r{numpy.matrix(self.io_overlap)}', end='', flush=True)
 
@@ -246,22 +290,31 @@ class MatrixSolution:
                     # If needs to go back from the first element, then there are no solutions
                     if (i, j) == (0, 0):
                         print(
-                            'All paths to the destination are either blocked or cannot be achieved by only moving down and right.'
+                            '\nAll paths to the destination are either blocked or cannot be achieved by only moving down and right.'
                         )
                         self.result = None
                         return None
                     self.result.pop()
                     # Reset io_overlap
-                    self.io_overlap[i][j] = '0'
+                    if self.visualize:
+                        self.io_overlap[i][j] = '0'
                     # Blacklist that cell
                     self.input[i][j] = True
                     # Restart from last known good location
                     i, j = self.result[-1]
                     self.result.pop()
                     # Reset io_overlap
-                    self.io_overlap[i][j] = '0'
+                    # Reset io_overlap
+                    if self.visualize:
+                        self.io_overlap[i][j] = '0'
                     self.recursion(i, j)
                 elif best_path == 'last_cell':
+                    return None
+                elif best_path is None:
+                    print(
+                        '\nAll paths to the destination are either blocked or cannot be achieved by only moving down and right.'
+                    )
+                    self.result = None
                     return None
 
 
