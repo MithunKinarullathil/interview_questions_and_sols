@@ -292,7 +292,9 @@ class MatrixSolution:
                 # Visualize result for feedback if in file_input
                 if self.visualize:
                     self.io_overlap[i][j] = MatrixSolution.mov_viz_char
-                    print(self.str_repr(self.io_overlap), end='\r', flush=False)
+                    print(self.str_repr(self.io_overlap), end='\r', flush=True)
+                    # Print io_overlap in place of the terminal
+                    print('\033[F' * (self.matrix_size + 1), end='\n', flush=True)
 
                 # Check best path
                 best_path = self.find_best_next_cell(i, j)
