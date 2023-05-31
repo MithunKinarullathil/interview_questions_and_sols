@@ -3,8 +3,14 @@ Question: Given a square matrix area where each cell is either empty or has an o
 
 ## Running the solution
 ```
-python3 matrix_solution.py
+python3 matrix_solution.py --matrix_size 10 --free_nav --visualize --speed 1 --file_input
 ```
+![speed_run](imgs/sample_run.gif)
+
 ### Optional args
 - `--matrix_size=<number>`: Given an int generates a random NxN matrix as input.
-- `--test_mode`: The input is loaded from the `input.yaml` file.
+- `--file_input`: The input is loaded from the `input.yaml` file.
+- `--free_nav`: Free movement of the robot in all directions.
+- `--mov_viz_char`: Character to visualize the movement of the robot.
+- `--visualize`: Visualize the jumps in realtime. Use it with the --speed arg to control iteration speed.
+- `--speed`: [0-1] Speed of processing. 1 is fastest, 0 is slowest.
