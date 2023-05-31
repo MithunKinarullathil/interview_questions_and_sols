@@ -35,6 +35,21 @@ parser.add_argument(
     default=False,
     required=False,
 )
+parser.add_argument(
+    '--mov_viz_char',
+    type=str,
+    help='Character to visualize the movement of the robot',
+    default='>',
+    required=False,
+)
+parser.add_argument(
+    '--speed',
+    type=float,
+    help='[0-1] Speed of processing. 1 is fastest, 0 is slowest.',
+    default=0.8,
+    required=False,
+)
+
 args = parser.parse_args()
 
 
@@ -42,8 +57,6 @@ class MatrixSolution:
     # Class attribute
     # Character to visualize the movement of the robot
     mov_viz_char = '>'
-    # Slow down by this much when using visualize mode
-    period = 0.8
 
     def __init__(
         self, matrix_size: int, file_input: bool, free_nav: bool, visualize: bool
@@ -54,6 +67,7 @@ class MatrixSolution:
         """
         # Log the class description
         print(self.__init__.__doc__)
+        print('\n' * matrix_size)
 
         # Initialize variables
         self.result = []
@@ -270,7 +284,7 @@ class MatrixSolution:
         """Recursion function."""
         # If visualizing, slow down recursion
         if self.visualize:
-            time.sleep(MatrixSolution.period)
+            time.sleep(0.6 - (args.speed) / 2)
         # Stop recursion
         if i > self.matrix_size - 1 or j > self.matrix_size - 1:
             return None
@@ -292,9 +306,9 @@ class MatrixSolution:
                 # Visualize result for feedback if in file_input
                 if self.visualize:
                     self.io_overlap[i][j] = MatrixSolution.mov_viz_char
-                    print(self.str_repr(self.io_overlap), end='\r', flush=True)
                     # Print io_overlap in place of the terminal
                     print('\033[F' * (self.matrix_size + 1), end='\n', flush=True)
+                    print(self.str_repr(self.io_overlap), end='', flush=True)
 
                 # Check best path
                 best_path = self.find_best_next_cell(i, j)
@@ -316,7 +330,8 @@ class MatrixSolution:
                     # If needs to go back from the first element, then there are no solutions
                     if (i, j) == (0, 0):
                         print(
-                            '\nAll paths to the destination are either blocked or cannot be achieved by only moving down and right.'
+                            '\nAll paths to the destination are either blocked or cannot be achieved by only moving down and right.',
+                            end='\n',
                         )
                         self.result = None
                         return None
@@ -338,7 +353,8 @@ class MatrixSolution:
                     return None
                 elif best_path is None:
                     print(
-                        '\nAll paths to the destination are either blocked or cannot be achieved by only moving down and right.'
+                        '\nAll paths to the destination are either blocked or cannot be achieved by only moving down and right.',
+                        end='\n',
                     )
                     self.result = None
                     return None
