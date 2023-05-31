@@ -23,14 +23,14 @@ parser.add_argument(
 )
 parser.add_argument(
     '--free_nav',
-    help='Free movement of the robot in all direction',
+    help='Free movement of the robot in all directions.',
     action='store_true',
     default=False,
     required=False,
 )
 parser.add_argument(
     '--visualize',
-    help='Visualize the jumps in realtime. Slows the code by 0.3s per iteration.',
+    help='Visualize the jumps in realtime. Use it with the --speed arg to control iteration speed.',
     action='store_true',
     default=False,
     required=False,
@@ -38,7 +38,7 @@ parser.add_argument(
 parser.add_argument(
     '--mov_viz_char',
     type=str,
-    help='Character to visualize the movement of the robot',
+    help='Character to visualize the movement of the robot.',
     default='>',
     required=False,
 )
@@ -65,10 +65,6 @@ class MatrixSolution:
         Each cell of the matrix has a boolean value, True or False. Where True means that the cell is blocked.
         Only right and down jumps are allowed.
         """
-        # Log the class description
-        print(self.__init__.__doc__)
-        print('\n' * matrix_size)
-
         # Initialize variables
         self.result = []
         self.free_nav = free_nav
@@ -82,6 +78,7 @@ class MatrixSolution:
             )
             # Convert numpy matrix to list of lists
             self.input_int = self.np_matrix.tolist()
+            self.matrix_size = matrix_size
         else:
             # Log
             print('Test mode is on. Reading input from input.yaml file.')
@@ -89,13 +86,13 @@ class MatrixSolution:
             with open('input.yaml') as file:
                 input_dict = yaml.load(file, Loader=yaml.FullLoader)
             self.input_int = input_dict['input']
+            self.matrix_size = len(self.input_int)
 
         # Convert 0/1 to True/False
         self.input_bool = list(map(lambda x: list(map(bool, x)), self.input_int))
 
         # Copy input matrix, as we will be modifying it
         self.input = copy.deepcopy(self.input_bool)
-        self.matrix_size = len(self.input)
 
         # Generate a visualization matrix where we overlap input and result while in file_input
         if visualize:
@@ -107,6 +104,12 @@ class MatrixSolution:
             print('Input Matrix')
             input_mod = list(map(lambda x: list(map(int, x)), self.input_orig))
             print(numpy.array(input_mod))
+
+        # Log the class description
+        print(self.__init__.__doc__)
+        # Make space for inplace visualization.
+        if self.visualize:
+            print(self.matrix_size * '\n', end='\r', flush=True)
 
     def is_blocked(self, x, y) -> bool:
         """Check if the cell is blocked or not."""
@@ -297,8 +300,9 @@ class MatrixSolution:
                 # If first cell is blocked, then there are no solutions
                 # First cell block,
                 if (i, j) == (0, 0):
+                    # Print io_overlap in place of the terminal
+                    print(self.str_repr(self.io_overlap))
                     print('First cell is blocked. There are no viable solutions.')
-                    self.result = None
                     return None
             else:
                 # The cell is clear, it's a good cell
