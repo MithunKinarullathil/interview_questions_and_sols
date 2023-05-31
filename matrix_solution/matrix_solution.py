@@ -64,27 +64,28 @@ class MatrixSolution:
         if not file_input:
             # Input matrix (8x8) with random True/False values
             self.np_matrix = numpy.random.choice(
-                [True, False], size=(matrix_size, matrix_size), p=[0.2, 0.8]
+                [1, 0], size=(matrix_size, matrix_size), p=[0.2, 0.8]
             )
             # Convert numpy matrix to list of lists
-            self.input_orig = self.np_matrix.tolist()
+            self.input_int = self.np_matrix.tolist()
         else:
             # Log
             print('Test mode is on. Reading input from input.yaml file.')
             # Read input from input.yaml file
             with open('input.yaml') as file:
                 input_dict = yaml.load(file, Loader=yaml.FullLoader)
-            self.input_orig = input_dict['input']
-            # Convert 0/1 to True/False
-            self.input_orig = list(map(lambda x: list(map(bool, x)), self.input_orig))
+            self.input_int = input_dict['input']
+
+        # Convert 0/1 to True/False
+        self.input_bool = list(map(lambda x: list(map(bool, x)), self.input_int))
 
         # Copy input matrix, as we will be modifying it
-        self.input = copy.deepcopy(self.input_orig)
+        self.input = copy.deepcopy(self.input_bool)
         self.matrix_size = len(self.input)
 
         # Generate a visualization matrix where we overlap input and result while in file_input
-        if file_input:
-            self.io_overlap = copy.deepcopy(input_dict['input'])
+        if visualize:
+            self.io_overlap = copy.deepcopy(self.input_int)
 
         # Print input matrix if visualization is not enabled
         if not visualize:
