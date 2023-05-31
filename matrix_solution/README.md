@@ -3,8 +3,10 @@ Question: Given a square matrix area where each cell is either empty or has an o
 
 ## Running the solution
 ```
-python3 matrix_solution.py
+python3 matrix_solution.py --matrix_size 10 --free_nav --visualize --speed 1 --file_input
 ```
+![speed_run](imgs/sample_run.gif)
+
 ### Optional args
 - `--matrix_size=<number>`: Given an int generates a random NxN matrix as input.
 - `--file_input`: The input is loaded from the `input.yaml` file.
